@@ -1,9 +1,15 @@
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { auth, googleProvider } from "./firebase";
+import { auth, db, googleProvider } from "./firebase";
+import { addDoc, collection, onSnapshot, query, Timestamp, where } from "firebase/firestore";
 
 export function Todo() {
   const [user, setUser] = useState(null);
+  const [task, setTask] = useState("");
+  const [taskList, setTaskLIst] = useState([]);
+  const [editId, setEditId] = useState(null);
+  const [editText, setEditText] = useState("");
+
   //   페이지가 처음 열릴 때 로그인 상태를 확인하기
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -14,6 +20,31 @@ export function Todo() {
   }, []); //[]빈 배열: 페이지가 처음 열릴 때만 실행하기.
 
   //   구글 로그인이 되지 않았을 때. (만약 아무도 로그인하지 않았다면 로그인화면 보여주기)
+
+  // 로그인 한 사람의 할 일 목록을 데이터 베이스에서 가져오기
+  useEffect(() => {
+    // 만약에 로그인 하지 않았다면
+    if (!user) {
+      setTaskLIst([]);
+      return; // 더이상 할 일 없음. 여기서 끝내기.
+    }
+    const q = query(collection(db, "todos"), where("userId", "==", user.uid));
+    // onSnapshot()는 데이터가 바뀔 떄 마다 자동으로 여러부분 실시간 감시자
+    const unsubscribe = onSnapshot(
+      q, //위에서 만든 질문(나의 할일만 찾기)
+      (snapshot) => {
+        console.log(snapshot);
+        const tasks = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(), //할 일 내용들
+          date: doc.data().createAt?.toDate().toLocsleString() | "", //만든 날짜를 보기좋게 바꾸기
+          createdAtTimestmp: doc.data().createdAt, // 나중에 정렬하기 위해 시간 정보 보관 정렬 / 비교용
+        }));
+      }
+    );
+    return () => unsubscribe();
+  }, [user]); //user가 바뀔 때 마다 실행(로그인 / 로그아웃할 때)
+
   //   구글 로그인 클릭 시
   function handleGoogleLogin() {
     // 구글로그인 창을 띄워 로그인하기
@@ -37,6 +68,24 @@ export function Todo() {
         console.log("로그아웃 실패:", error); // 콘솔에 실패 메시지 출력
       });
   }
+  // 할일 추가 버튼
+  async function handleAdd() {
+    if ((task.trim() === "") | !user) return;
+    try {
+      await addDoc(collection(db, "todos"), {
+        userId: user.uid,
+        text: task, //할일 내용
+        done: false,
+        createdAt: Timestamp.now(), //지금 시간을 기록하기.
+      });
+      setTask("");
+    } catch (error) {
+      // catch: 문제가 생겼을 때 실행되는 부분
+      console.error("할 일 추가 실패:", error); // 콘솔에 에러 출력
+      alert("할 일 추가에 실패했습니다: " + error.message); // 사용자에게 에러 메시지 보여주기
+    }
+  }
+
   if (!user) {
     return (
       <div
@@ -89,6 +138,7 @@ export function Todo() {
             marginBottom: "20px", // 아래쪽 여백
           }}>
           <h1>할일 관리</h1>
+          {/* 헤더부분 : 제목과 사용자정보,로그아웃버튼 */}
           <div>
             {/* 사용자 이름 또는 이메일 표시 */}
             <span style={{ marginRight: "10px" }}>{user.displayName || user.email}</span>
@@ -107,6 +157,18 @@ export function Todo() {
               로그아웃
             </button>
           </div>
+          {/* 할일 입력 부분 */}
+          <input
+            type="text"
+            placeholder="할일을 입력해주세요."
+            value={task}
+            onChange={(e) => setTask(e.target.value)}
+            style={{ padding: "10px", fontSize: "16px", width: "70%" }}
+          />
+          {/* 추가 버튼 */}
+          <button onClick={handleAdd} style={{ padding: "10px", marginLeft: "10px" }}>
+            추가
+          </button>
         </div>
       </div>
     </>
