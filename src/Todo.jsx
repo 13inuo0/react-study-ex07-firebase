@@ -41,6 +41,11 @@ export function Todo() {
           createdAtTimestmp: doc.data().createdAt, // 나중에 정렬하기 위해 시간 정보 보관 정렬 / 비교용
         }));
         console.log(tasks);
+        tasks.sort((a, b) => {
+          if (!a.createdAtTimestmp || !b.createdAtTimestmp) return 0;
+          return b.createdAtTimestmp.toMillis() - a.createdAtTimestmp.toMillis(); //시간을 숫자로 바꾸는 것.
+        });
+        setTaskLIst(tasks);
       }
     );
     return () => unsubscribe();
@@ -87,18 +92,10 @@ export function Todo() {
     }
   }
 
-async function toggleDone(id){
-    
-}
-async function handleEditSave(id){
-
-}
-function handleEditStart(id,currentText){
-
-}
-async function handleDelete(id){
-    
-}
+  async function toggleDone(id) {}
+  async function handleEditSave(id) {}
+  function handleEditStart(id, currentText) {}
+  async function handleDelete(id) {}
 
   if (!user) {
     return (
@@ -171,7 +168,8 @@ async function handleDelete(id){
               로그아웃
             </button>
           </div>
-          {/* 할일 입력 부분 */}
+ 
+        </div>         {/* 할일 입력 부분 */}
           <input
             type="text"
             placeholder="할일을 입력해주세요."
@@ -291,7 +289,6 @@ async function handleDelete(id){
               </li>
             ))}
           </ul>
-        </div>
       </div>
     </>
   );
