@@ -87,6 +87,19 @@ export function Todo() {
     }
   }
 
+async function toggleDone(id){
+    
+}
+async function handleEditSave(id){
+
+}
+function handleEditStart(id,currentText){
+
+}
+async function handleDelete(id){
+    
+}
+
   if (!user) {
     return (
       <div
