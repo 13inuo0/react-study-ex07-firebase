@@ -40,6 +40,7 @@ export function Todo() {
           date: doc.data().createAt?.toDate().toLocsleString() | "", //만든 날짜를 보기좋게 바꾸기
           createdAtTimestmp: doc.data().createdAt, // 나중에 정렬하기 위해 시간 정보 보관 정렬 / 비교용
         }));
+        console.log(tasks);
       }
     );
     return () => unsubscribe();
@@ -169,6 +170,114 @@ export function Todo() {
           <button onClick={handleAdd} style={{ padding: "10px", marginLeft: "10px" }}>
             추가
           </button>
+          {/* 할 일 목록 부분 */}
+          <ul
+            style={{
+              // ul: 목록을 만드는 태그
+              listStyle: "none", // 목록 앞의 점(불릿) 제거
+              padding: 0, // 안쪽 여백 없음
+              marginTop: "20px", // 위쪽 여백
+              textAlign: "left", // 글자를 왼쪽 정렬
+            }}>
+            {taskList.map(({ id, text, date, done }) => (
+              <li
+                key={id}
+                style={{
+                  // li: 목록의 각 항목
+                  marginBottom: "12px", // 아래쪽 여백 (각 할 일 사이 간격)
+                  background: done ? "#d4edda" : "#f8d7da", // 배경색
+                  // done이 true(완료)면 연한 초록색, false(미완료)면 연한 빨간색
+                  padding: "10px", // 안쪽 여백
+                  borderRadius: "5px", // 모서리를 둥글게
+                  display: "flex", // 가로로 나란히 배치
+                  alignItems: "center", // 세로로 가운데 정렬
+                  justifyContent: "space-between", // 양쪽 끝에 배치
+                }}>
+                <div>
+                  <input
+                    type="checkbox"
+                    checked={done}
+                    onChange={() => toggleDone(id)}
+                    style={{ marginRight: "10px" }}
+                  />
+                  {/* 할 일이 수정 모드일 때 */}
+                  {editId === id ? (
+                    // 수정모드 일 때
+                    <>
+                      <input
+                        type="text"
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        style={{ padding: "5px", fontSize: "14px", width: "70%" }}
+                      />
+                      <button
+                        onClick={() => handleEditSave(id)} // 버튼을 클릭하면 handleEditSave 함수 실행
+                        style={{
+                          marginLeft: "5px", // 왼쪽 여백
+                          padding: "5px 8px", // 안쪽 여백
+                          backgroundColor: "green", // 배경색 (초록색)
+                          color: "white", // 글자색 (흰색)
+                          border: "none", // 테두리 없음
+                          borderRadius: "4px", // 모서리를 둥글게
+                          cursor: "pointer", // 마우스를 올리면 손가락 모양으로 바뀜
+                        }}>
+                        저장 {/* 버튼에 보이는 글자 */}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {" "}
+                      <strong
+                        style={{
+                          // strong: 굵은 글씨
+                          textDecoration: done ? "line-through" : "none",
+                          // done이 true(완료)면 취소선, false(미완료)면 취소선 없음
+                        }}>
+                        {text} {/* 할 일의 내용 (예: "숙제하기") */}
+                      </strong>
+                      <br /> {/* 줄바꿈 */}
+                      <small style={{ color: "#666" }}>{date}</small>
+                      {/* small: 작은 글씨, 날짜를 회색으로 표시 */}
+                    </>
+                  )}
+                </div>
+                {/* 수정 삭제 버튼 */}
+                {/* 오른쪽 부분: 수정 버튼과 삭제 버튼 */}
+                <div>
+                  {/* editId !== id: 이 할 일이 수정 모드가 아닐 때만 수정 버튼 보여주기 */}
+                  {editId !== id && (
+                    <button
+                      onClick={() => handleEditStart(id, text)} // 버튼을 클릭하면 handleEditStart 함수 실행
+                      style={{
+                        background: "orange", // 배경색 (주황색)
+                        color: "white", // 글자색 (흰색)
+                        border: "none", // 테두리 없음
+                        borderRadius: "4px", // 모서리를 둥글게
+                        padding: "5px 8px", // 안쪽 여백
+                        cursor: "pointer", // 마우스를 올리면 손가락 모양으로 바뀜
+                        marginRight: "5px", // 오른쪽 여백
+                      }}>
+                      수정 {/* 버튼에 보이는 글자 */}
+                    </button>
+                  )}
+
+                  {/* 삭제 버튼 */}
+                  <button
+                    onClick={() => handleDelete(id)} // 버튼을 클릭하면 handleDelete 함수 실행
+                    style={{
+                      background: "red", // 배경색 (빨간색)
+                      color: "white", // 글자색 (흰색)
+                      border: "none", // 테두리 없음
+                      borderRadius: "4px", // 모서리를 둥글게
+                      padding: "5px 8px", // 안쪽 여백
+                      cursor: "pointer", // 마우스를 올리면 손가락 모양으로 바뀜
+                    }}>
+                    삭제 {/* 버튼에 보이는 글자 */}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </>
