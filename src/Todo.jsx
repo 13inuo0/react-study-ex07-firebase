@@ -70,23 +70,18 @@ export function Todo() {
       console.log("로그인 성공!", result.user);
 
       setEmail("");
+      setPassword("");
     } catch (error) {
       console.error("로그인 실패:", error);
-      // 에러메세지를 사용자에게 알리기
-      let errorMessage = "로그인에 실패 했습니다.";
-      if (error.code === "auth/user-not-found") {
-        // 계정에 없는 경우
-        errorMessage += "등록되지 않은 이메일입니다. 회원가입을 먼저 해주세요.";
-      } else if (error.code === "auth/wrong-password") {
-        // 비밀번호가 틀린 경우
-        errorMessage += "비밀번호가 올바르지 않습니다.";
-      } else if (error.code === "auth/invalid-email") {
-        // 이메일 형식이 틀린 경우
-        errorMessage += "올바른 이메일 형식이 아닙니다.";
-      } else {
-        errorMessage += error.message; // 그외 에러
+      // 에러 메시지를 사용자에게 쉽게 알려주기
+      let errorMessage = "";
+      if (error.code === "auth/invalid-credential") {
+        // 최신 Firebase: 잘못된 이메일 또는 비밀번호 (보안상 구체적인 정보 제공 안 함)
+        errorMessage =
+          "이메일 주소 또는 비밀번호가 올바르지 않습니다.\n\n등록되지 않은 이메일이거나 비밀번호가 틀렸을 수 있습니다.\n회원가입을 먼저 진행해주시거나 입력 정보를 확인해주세요.";
       }
-      alert(errorMessage);
+
+      alert(errorMessage); // 사용자에게 에러 메시지 보여주기
     }
   }
   async function handleEmailSignUp() {
